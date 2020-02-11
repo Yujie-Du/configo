@@ -33,6 +33,47 @@ func(ini *iniconfig)Get(block,key string)(value string,ok bool){
 	value,ok=bl[key]
 	return
 }
+func(ini *iniconfig)Set(block,key,value string){
+	bl,ok:=ini.data[block]
+	if !ok{
+		bl=make(map[string]string)
+		ini.data[block]=bl
+	}
+	bl[key]=value
+}
+func(ini *iniconfig)Commit(){
+	file,err:=os.OpenFile(ini.filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
+	if err!=nil{
+		panic(err.Error())
+	}
+	defer file.Close()
+	data:=ini.format()
+	file.Write(data)
+}
+func(ini *iniconfig)format()(data []byte){
+	data=make([]byte,0,2048)
+	data=ini.formatblock("default",data)
+	for block:=range ini.data{
+		if block!="default"{
+			data=ini.formatblock(block,data)
+		}
+	}
+	return
+}
+func(ini *iniconfig)formatblock(block string,data []byte)(data2 []byte){
+	if block!="default"{
+		data=append(data,'[')
+		data=append(data,[]byte(block)...)
+		data=append(data,']','\n')
+	}
+	for key,value:=range ini.data[block]{
+		data=append(data,[]byte(key)...)
+		data=append(data,'=')
+		data=append(data,[]byte(value)...)
+		data=append(data,'\n')
+	}
+	return data
+}
 func iniNext(str []rune,data map[string]map[string]string){
 	block:="default"
 	data[block]=make(map[string]string)
