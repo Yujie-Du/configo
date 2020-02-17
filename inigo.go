@@ -3,12 +3,12 @@ import "io/ioutil"
 import "os"
 import _ "fmt"
 
-type iniconfig struct{
+type Iniconfig struct{
 	data map[string]map[string]string
 	filename string
 }
-//NewIni:新建一个iniconfig对象。filename:ini文件名
-func NewIni(filename string)(ic *iniconfig){
+//NewIni:新建一个Iniconfig对象。filename:ini文件名
+func NewIni(filename string)(ic *Iniconfig){
 	file,err:=os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err!=nil{
 		panic("err.Error")
@@ -18,14 +18,14 @@ func NewIni(filename string)(ic *iniconfig){
 	if err!=nil{
 		panic("err.Error")
 	}
-	ic=new(iniconfig)
+	ic=new(Iniconfig)
 	ic.data=make(map[string]map[string]string)
 	ic.filename=filename
 	str:=[]rune(string(bstr))
 	iniNext(str,ic.data)
 	return
 }
-func(ini *iniconfig)Get(block,key string)(value string,ok bool){
+func(ini *Iniconfig)Get(block,key string)(value string,ok bool){
 	bl,ok:=ini.data[block]
 	if !ok{
 		return
@@ -33,7 +33,7 @@ func(ini *iniconfig)Get(block,key string)(value string,ok bool){
 	value,ok=bl[key]
 	return
 }
-func(ini *iniconfig)Set(block,key,value string){
+func(ini *Iniconfig)Set(block,key,value string){
 	bl,ok:=ini.data[block]
 	if !ok{
 		bl=make(map[string]string)
@@ -41,7 +41,7 @@ func(ini *iniconfig)Set(block,key,value string){
 	}
 	bl[key]=value
 }
-func(ini *iniconfig)Commit(){
+func(ini *Iniconfig)Commit(){
 	file,err:=os.OpenFile(ini.filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 	if err!=nil{
 		panic(err.Error())
@@ -50,7 +50,7 @@ func(ini *iniconfig)Commit(){
 	data:=ini.format()
 	file.Write(data)
 }
-func(ini *iniconfig)format()(data []byte){
+func(ini *Iniconfig)format()(data []byte){
 	data=make([]byte,0,2048)
 	data=ini.formatblock("default",data)
 	for block:=range ini.data{
@@ -60,7 +60,7 @@ func(ini *iniconfig)format()(data []byte){
 	}
 	return
 }
-func(ini *iniconfig)formatblock(block string,data []byte)(data2 []byte){
+func(ini *Iniconfig)formatblock(block string,data []byte)(data2 []byte){
 	if block!="default"{
 		data=append(data,'[')
 		data=append(data,[]byte(block)...)
